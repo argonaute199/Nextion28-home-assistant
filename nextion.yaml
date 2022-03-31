@@ -1,0 +1,343 @@
+esphome:
+  name: esp-nextion
+
+esp8266:
+  board: d1
+
+ota:
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pwd
+
+logger:
+  baud_rate: 0
+
+http_request:
+
+uart:
+  rx_pin: GPIO3
+  tx_pin: GPIO01
+  baud_rate: 9600
+
+api:
+  services:
+    - service: update_tft
+      then:
+        - lambda: 'id(esp_nextion)->upload_tft();'
+
+# Texte d'information
+text_sensor:
+  - platform: homeassistant
+    id: ha_info
+    entity_id: input_text.nextion_message
+    on_value:
+      then:
+        lambda: |-
+          id(esp_nextion).set_component_text("info", id(ha_info).state.c_str() );
+
+# Gestion des températures
+sensor:
+  - platform: homeassistant
+    id: ha_temp_eau
+    entity_id: sensor.fibaro_piscine_temperature_eau
+    on_value:
+      then:
+        lambda: |-
+          id(esp_nextion).set_component_text_printf("tempeau","%.1f",id(ha_temp_eau).state);
+    
+  - platform: homeassistant
+    id: ha_temp_abri
+    entity_id: sensor.fibaro_piscine_temperature_abri
+    on_value:
+      then:
+        lambda: |-
+          id(esp_nextion).set_component_text_printf("tempabri","%.1f",id(ha_temp_abri).state);
+
+  - platform: homeassistant
+    id: ha_temp_ext
+    entity_id: sensor.oregon_thermometre_exterieur_temperature
+    on_value:
+      then:
+        lambda: |-
+          id(esp_nextion).set_component_text_printf("tempext","%.1f",id(ha_temp_ext).state);
+
+
+binary_sensor:
+# Gestion du fait qu'une alerte ou une info est affichéee (gestion de la couleur)
+  - platform: homeassistant
+    id: ha_alerte
+    entity_id: input_boolean.nextion_info_alerte
+    on_state:
+      then:
+        lambda: |-
+          if (x==1) {
+            id(esp_nextion).set_component_font_color("info","63488");
+          } else {
+            id(esp_nextion).set_component_font_color("info","24260");
+          }
+
+
+#---- Volet piscine
+  - platform: nextion
+    page_id: 1
+    component_id: 7
+    id: nx_ouvre_volet_piscine
+    on_press:
+      then:
+        - homeassistant.service:
+            service: cover.open_cover
+            data:
+              entity_id: cover.ipx800_volet_piscine
+  - platform: nextion
+    page_id: 1
+    component_id: 8
+    id: nx_stop_volet_piscine
+    on_press:
+      then:
+        - homeassistant.service:
+            service: cover.stop_cover
+            data:
+              entity_id: cover.ipx800_volet_piscine
+  - platform: nextion
+    page_id: 1
+    component_id: 9
+    id: nx_ferme_volet_piscine
+    on_press:
+      then:
+        - homeassistant.service:
+            service: cover.close_cover
+            data:
+              entity_id: cover.ipx800_volet_piscine
+
+#---- Spots piscine
+  - platform: homeassistant
+    id: ha_spots_piscine
+    entity_id: switch.ipx800_spots_piscine
+    on_state:
+      then:
+        lambda: |-
+          if (id(ha_spots_piscine).state) {
+            id(esp_nextion).set_component_value("bpiscine",1);
+          } else {
+            id(esp_nextion).set_component_value("bpiscine",0);
+          }
+
+  - platform: nextion
+    page_id: 2
+    component_id: 4
+    id: nx_spots_piscine
+    on_press:
+      then:
+        if:
+          condition:
+            lambda: 'return id(ha_spots_piscine).state;'
+          then:
+            - homeassistant.service:
+                service: switch.turn_off
+                data:
+                  entity_id: switch.ipx800_spots_piscine
+          else:
+            - homeassistant.service:
+                service: switch.turn_on
+                data:
+                  entity_id: switch.ipx800_spots_piscine
+
+
+#---- Plage
+  - platform: homeassistant
+    id: ha_lum_plage
+    entity_id: group.lumieres_plage
+    on_state:
+      then:
+        lambda: |-
+          if (id(ha_lum_plage).state) {
+            id(esp_nextion).set_component_value("bplage",1);
+          } else {
+            id(esp_nextion).set_component_value("bplage",0);
+          }
+
+  - platform: nextion
+    page_id: 2
+    component_id: 10
+    id: nx_lum_plage
+    on_press:
+      then:
+        if:
+          condition:
+            lambda: 'return id(ha_lum_plage).state;'
+          then:
+            - homeassistant.service:
+                service: switch.turn_off
+                data:
+                  entity_id: switch.ipx800_spots_terrasse
+            - homeassistant.service:
+                service: switch.turn_off
+                data:
+                  entity_id: switch.ipx800_lumiere_escalier_plage
+          else:
+            - homeassistant.service:
+                service: switch.turn_on
+                data:
+                  entity_id: switch.ipx800_spots_terrasse
+            - homeassistant.service:
+                service: switch.turn_on
+                data:
+                  entity_id: switch.ipx800_lumiere_escalier_plage
+
+
+#---- Terrasse
+  - platform: homeassistant
+    id: ha_lum_terrasse
+    entity_id: group.lumieres_terrasse
+    on_state:
+      then:
+        lambda: |-
+          if (id(ha_lum_terrasse).state) {
+            id(esp_nextion).set_component_value("btn_terrasse",1);
+          } else {
+            id(esp_nextion).set_component_value("btn_terrasse",0);
+          }
+  - platform: nextion
+    page_id: 2
+    component_id: 9
+    id: nx_lum_terrasse
+    on_press:
+      then:
+        if:
+          condition:
+            lambda: 'return id(ha_lum_terrasse).state;'
+          then:
+            - homeassistant.service:
+                service: switch.turn_off
+                data:
+                  entity_id: switch.fibaro_terrasse_lumiere_bureau
+            - homeassistant.service:
+                service: switch.turn_off
+                data:
+                  entity_id: switch.fibaro_terrasse_borne_massif
+          else:
+            - homeassistant.service:
+                service: switch.turn_on
+                data:
+                  entity_id: switch.fibaro_terrasse_lumiere_bureau
+            - homeassistant.service:
+                service: switch.turn_on
+                data:
+                  entity_id: switch.fibaro_terrasse_borne_massif
+
+
+#---- Lumières jardin
+  - platform: homeassistant
+    id: ha_lum_jardin
+    entity_id: switch.ipx800_lumiere_jardin
+    on_state:
+      then:
+        lambda: |-
+          if (id(ha_lum_jardin).state) {
+            id(esp_nextion).set_component_value("btn_jardin",1);
+          } else {
+            id(esp_nextion).set_component_value("btn_jardin",0);
+          }
+  - platform: nextion
+    page_id: 2
+    component_id: 11
+    id: nx_lum_jardin
+    on_press:
+      then:
+        if:
+          condition:
+            lambda: 'return id(ha_lum_jardin).state;'
+          then:
+            - homeassistant.service:
+                service: switch.turn_off
+                data:
+                  entity_id: switch.ipx800_lumiere_jardin
+          else:
+            - homeassistant.service:
+                service: switch.turn_on
+                data:
+                  entity_id: switch.ipx800_lumiere_jardin
+
+
+#---- Lumières chalet
+  - platform: homeassistant
+    id: ha_lum_chalet
+    entity_id: switch.chalet_lumiere
+    on_state:
+      then:
+        lambda: |-
+          if (id(ha_lum_chalet).state) {
+            id(esp_nextion).set_component_value("bchalet",1);
+          } else {
+            id(esp_nextion).set_component_value("bchalet",0);
+          }
+  - platform: nextion
+    page_id: 2
+    component_id: 12
+    id: nx_lum_chalet
+    on_press:
+      then:
+        if:
+          condition:
+            lambda: 'return id(ha_lum_chalet).state;'
+          then:
+            - homeassistant.service:
+                service: switch.turn_off
+                data:
+                  entity_id: switch.chalet_lumiere
+          else:
+            - homeassistant.service:
+                service: switch.turn_on
+                data:
+                  entity_id: switch.chalet_lumiere
+
+
+display:
+  - platform: nextion
+    id: esp_nextion
+    update_interval: 60s   # Pas de réel besoin de raffraichissement (toutes les 1 mn)
+    touch_sleep_timeout: 600   # s'éteint après 10 mn
+    wake_up_page: 0
+    tft_url: http://192.168.5.30:8123/local/nextion/nextion.tft
+    brightness: 50%    # Compromis lumière - fond noir
+    
+    # Initialisation avec les bonnes valeurs
+    lambda: |-
+      it.set_component_text("info", id(ha_info).state.c_str() );
+      if (id(ha_alerte).state == 1) {
+        id(esp_nextion).set_component_font_color("info","63488");
+      } else {
+        id(esp_nextion).set_component_font_color("info","24260");
+      }
+
+      it.set_component_text_printf("tempeau","%.1f",id(ha_temp_eau).state);
+      it.set_component_text_printf("tempabri","%.2f",id(ha_temp_abri).state);
+      it.set_component_text_printf("tempext","%.1f",id(ha_temp_ext).state);
+
+      if (id(ha_spots_piscine).state) {
+        it.set_component_value("bpiscine",1);
+      } else {
+        it.set_component_value("bpiscine",0);
+      }
+      if (id(ha_lum_plage).state) {
+        it.set_component_value("bplage",1);
+      } else {
+        it.set_component_value("bplage",0);
+      }
+      if (id(ha_lum_terrasse).state) {
+        it.set_component_value("bterrasse",1);
+      } else {
+        it.set_component_value("bterrasse",0);
+      }
+      if (id(ha_lum_jardin).state) {
+        it.set_component_value("bjardin",1);
+      } else {
+        it.set_component_value("bjardin",0);
+      }
+      if (id(ha_lum_chalet).state) {
+        it.set_component_value("bchalet",1);
+      } else {
+        it.set_component_value("bchalet",0);
+      }
+
