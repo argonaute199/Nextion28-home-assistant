@@ -26,7 +26,7 @@ api:
       then:
         - lambda: 'id(esp_nextion)->upload_tft();'
 
-# Texte d'information
+# Texte d'information -
 text_sensor:
   - platform: homeassistant
     id: ha_info
