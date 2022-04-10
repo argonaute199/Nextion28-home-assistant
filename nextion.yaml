@@ -26,7 +26,7 @@ api:
       then:
         - lambda: 'id(esp_nextion)->upload_tft();'
 
-# Texte d'information -
+# Texte d'information
 text_sensor:
   - platform: homeassistant
     id: ha_info
@@ -296,48 +296,49 @@ binary_sensor:
 display:
   - platform: nextion
     id: esp_nextion
-    update_interval: 60s   # Pas de réel besoin de raffraichissement (toutes les 1 mn)
-    touch_sleep_timeout: 600   # s'éteint après 10 mn
+    update_interval: 60s   # Pas de réel besoin de raffraichissement
+    touch_sleep_timeout: 180
     wake_up_page: 0
     tft_url: http://192.168.5.30:8123/local/nextion/nextion.tft
-    brightness: 50%    # Compromis lumière - fond noir
+    brightness: 70%
+    on_wake:
+      then:
+        # Initialisation avec les bonnes valeurs
+        lambda: |-
+          id(esp_nextion).set_component_text("info", id(ha_info).state.c_str() );
+          if (id(ha_alerte).state == 1) {
+            id(esp_nextion).set_component_font_color("info","63488");
+          } else {
+            id(esp_nextion).set_component_font_color("info","24260");
+          }
     
-    # Initialisation avec les bonnes valeurs
-    lambda: |-
-      it.set_component_text("info", id(ha_info).state.c_str() );
-      if (id(ha_alerte).state == 1) {
-        id(esp_nextion).set_component_font_color("info","63488");
-      } else {
-        id(esp_nextion).set_component_font_color("info","24260");
-      }
-
-      it.set_component_text_printf("tempeau","%.1f",id(ha_temp_eau).state);
-      it.set_component_text_printf("tempabri","%.2f",id(ha_temp_abri).state);
-      it.set_component_text_printf("tempext","%.1f",id(ha_temp_ext).state);
-
-      if (id(ha_spots_piscine).state) {
-        it.set_component_value("bpiscine",1);
-      } else {
-        it.set_component_value("bpiscine",0);
-      }
-      if (id(ha_lum_plage).state) {
-        it.set_component_value("bplage",1);
-      } else {
-        it.set_component_value("bplage",0);
-      }
-      if (id(ha_lum_terrasse).state) {
-        it.set_component_value("bterrasse",1);
-      } else {
-        it.set_component_value("bterrasse",0);
-      }
-      if (id(ha_lum_jardin).state) {
-        it.set_component_value("bjardin",1);
-      } else {
-        it.set_component_value("bjardin",0);
-      }
-      if (id(ha_lum_chalet).state) {
-        it.set_component_value("bchalet",1);
-      } else {
-        it.set_component_value("bchalet",0);
-      }
+          id(esp_nextion).set_component_text_printf("tempeau","%.1f",id(ha_temp_eau).state);
+          id(esp_nextion).set_component_text_printf("tempabri","%.2f",id(ha_temp_abri).state);
+          id(esp_nextion).set_component_text_printf("tempext","%.1f",id(ha_temp_ext).state);
+    
+          if (id(ha_spots_piscine).state) {
+            id(esp_nextion).set_component_value("bpiscine",1);
+          } else {
+            id(esp_nextion).set_component_value("bpiscine",0);
+          }
+          if (id(ha_lum_plage).state) {
+            id(esp_nextion).set_component_value("bplage",1);
+          } else {
+            id(esp_nextion).set_component_value("bplage",0);
+          }
+          if (id(ha_lum_terrasse).state) {
+            id(esp_nextion).set_component_value("bterrasse",1);
+          } else {
+            id(esp_nextion).set_component_value("bterrasse",0);
+          }
+          if (id(ha_lum_jardin).state) {
+            id(esp_nextion).set_component_value("bjardin",1);
+          } else {
+            id(esp_nextion).set_component_value("bjardin",0);
+          }
+          if (id(ha_lum_chalet).state) {
+            id(esp_nextion).set_component_value("bchalet",1);
+          } else {
+            id(esp_nextion).set_component_value("bchalet",0);
+          }
 
