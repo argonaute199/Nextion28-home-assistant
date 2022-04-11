@@ -8,7 +8,7 @@ ota:
 
 wifi:
   ssid: !secret wifi_ssid
-  password: !secret wifi_pwd
+  password: !secret wifi_password
 
 logger:
   baud_rate: 0
