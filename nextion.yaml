@@ -34,7 +34,7 @@ text_sensor:
     on_value:
       then:
         lambda: |-
-          id(esp_nextion).set_component_text("info", id(ha_info).state.c_str() );
+          id(esp_nextion).set_component_text("main.info", id(ha_info).state.c_str() );
 
 # Gestion des températures
 sensor:
@@ -44,7 +44,7 @@ sensor:
     on_value:
       then:
         lambda: |-
-          id(esp_nextion).set_component_text_printf("tempeau","%.1f",id(ha_temp_eau).state);
+          id(esp_nextion).set_component_text_printf("main.tempeau","%.1f",id(ha_temp_eau).state);
     
   - platform: homeassistant
     id: ha_temp_abri
@@ -52,7 +52,7 @@ sensor:
     on_value:
       then:
         lambda: |-
-          id(esp_nextion).set_component_text_printf("tempabri","%.1f",id(ha_temp_abri).state);
+          id(esp_nextion).set_component_text_printf("main.tempabri","%.1f",id(ha_temp_abri).state);
 
   - platform: homeassistant
     id: ha_temp_ext
@@ -60,7 +60,9 @@ sensor:
     on_value:
       then:
         lambda: |-
-          id(esp_nextion).set_component_text_printf("tempext","%.1f",id(ha_temp_ext).state);
+          id(esp_nextion).set_component_text_printf("main.tempext","%.1f",id(ha_temp_ext).state);
+
+
 
 
 binary_sensor:
@@ -72,13 +74,14 @@ binary_sensor:
       then:
         lambda: |-
           if (x==1) {
-            id(esp_nextion).set_component_font_color("info","63488");
+            id(esp_nextion).set_component_font_color("main.info","63488");
           } else {
-            id(esp_nextion).set_component_font_color("info","24260");
+            id(esp_nextion).set_component_font_color("main.info","24260");
           }
 
 
 #---- Volet piscine
+
   - platform: nextion
     page_id: 1
     component_id: 7
@@ -118,9 +121,9 @@ binary_sensor:
       then:
         lambda: |-
           if (id(ha_spots_piscine).state) {
-            id(esp_nextion).set_component_value("bpiscine",1);
+            id(esp_nextion).set_component_value("lumieres.bpiscine",1);
           } else {
-            id(esp_nextion).set_component_value("bpiscine",0);
+            id(esp_nextion).set_component_value("lumieres.bpiscine",0);
           }
 
   - platform: nextion
@@ -152,9 +155,9 @@ binary_sensor:
       then:
         lambda: |-
           if (id(ha_lum_plage).state) {
-            id(esp_nextion).set_component_value("bplage",1);
+            id(esp_nextion).set_component_value("lumieres.bplage",1);
           } else {
-            id(esp_nextion).set_component_value("bplage",0);
+            id(esp_nextion).set_component_value("lumieres.bplage",0);
           }
 
   - platform: nextion
@@ -194,9 +197,9 @@ binary_sensor:
       then:
         lambda: |-
           if (id(ha_lum_terrasse).state) {
-            id(esp_nextion).set_component_value("btn_terrasse",1);
+            id(esp_nextion).set_component_value("lumieres.bterrass",1);
           } else {
-            id(esp_nextion).set_component_value("btn_terrasse",0);
+            id(esp_nextion).set_component_value("lumieres.bterrass",0);
           }
   - platform: nextion
     page_id: 2
@@ -235,9 +238,9 @@ binary_sensor:
       then:
         lambda: |-
           if (id(ha_lum_jardin).state) {
-            id(esp_nextion).set_component_value("btn_jardin",1);
+            id(esp_nextion).set_component_value("lumieres.bjardin",1);
           } else {
-            id(esp_nextion).set_component_value("btn_jardin",0);
+            id(esp_nextion).set_component_value("lumieres.bjardin",0);
           }
   - platform: nextion
     page_id: 2
@@ -268,9 +271,9 @@ binary_sensor:
       then:
         lambda: |-
           if (id(ha_lum_chalet).state) {
-            id(esp_nextion).set_component_value("bchalet",1);
+            id(esp_nextion).set_component_value("lumieres.bchalet",1);
           } else {
-            id(esp_nextion).set_component_value("bchalet",0);
+            id(esp_nextion).set_component_value("lumieres.bchalet",0);
           }
   - platform: nextion
     page_id: 2
@@ -305,40 +308,41 @@ display:
       then:
         # Initialisation avec les bonnes valeurs
         lambda: |-
-          id(esp_nextion).set_component_text("info", id(ha_info).state.c_str() );
+          id(esp_nextion).set_component_text("main.info", id(ha_info).state.c_str() );
+          
           if (id(ha_alerte).state == 1) {
-            id(esp_nextion).set_component_font_color("info","63488");
+            id(esp_nextion).set_component_font_color("main.info","63488");
           } else {
-            id(esp_nextion).set_component_font_color("info","24260");
+            id(esp_nextion).set_component_font_color("main.info","24260");
           }
     
-          id(esp_nextion).set_component_text_printf("tempeau","%.1f",id(ha_temp_eau).state);
-          id(esp_nextion).set_component_text_printf("tempabri","%.2f",id(ha_temp_abri).state);
-          id(esp_nextion).set_component_text_printf("tempext","%.1f",id(ha_temp_ext).state);
+          id(esp_nextion).set_component_text_printf("main.tempeau","%.1f",id(ha_temp_eau).state);
+          id(esp_nextion).set_component_text_printf("main.tempabri","%.2f",id(ha_temp_abri).state);
+          id(esp_nextion).set_component_text_printf("main.tempext","%.1f",id(ha_temp_ext).state);     
     
           if (id(ha_spots_piscine).state) {
-            id(esp_nextion).set_component_value("bpiscine",1);
+            id(esp_nextion).set_component_value("lumieres.bpiscine",1);
           } else {
-            id(esp_nextion).set_component_value("bpiscine",0);
+            id(esp_nextion).set_component_value("lumieres.bpiscine",0);
           }
           if (id(ha_lum_plage).state) {
-            id(esp_nextion).set_component_value("bplage",1);
+            id(esp_nextion).set_component_value("lumieres.bplage",1);
           } else {
-            id(esp_nextion).set_component_value("bplage",0);
+            id(esp_nextion).set_component_value("lumieres.bplage",0);
           }
           if (id(ha_lum_terrasse).state) {
-            id(esp_nextion).set_component_value("bterrasse",1);
+            id(esp_nextion).set_component_value("lumieres.bterrass",1);
           } else {
-            id(esp_nextion).set_component_value("bterrasse",0);
+            id(esp_nextion).set_component_value("lumieres.bterrass",0);
           }
           if (id(ha_lum_jardin).state) {
-            id(esp_nextion).set_component_value("bjardin",1);
+            id(esp_nextion).set_component_value("lumieres.bjardin",1);
           } else {
-            id(esp_nextion).set_component_value("bjardin",0);
+            id(esp_nextion).set_component_value("lumieres.bjardin",0);
           }
           if (id(ha_lum_chalet).state) {
-            id(esp_nextion).set_component_value("bchalet",1);
+            id(esp_nextion).set_component_value("lumieres.bchalet",1);
           } else {
-            id(esp_nextion).set_component_value("bchalet",0);
+            id(esp_nextion).set_component_value("lumieres.bchalet",0);
           }
 
